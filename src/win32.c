@@ -356,6 +356,8 @@ int kmain(int argc, char** argv)
     while (gRunning)
     {
         win32ProcessPendingMessages();
+        z80Update();
+        eventUpate();
     }
 
     K_FREE(image, imageSize);
