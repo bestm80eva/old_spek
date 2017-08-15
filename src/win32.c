@@ -352,12 +352,18 @@ int kmain(int argc, char** argv)
     memoryClear(image, imageSize);
 
     Window wnd = windowMake("SPEK (V0.1)", image, SPEK_WIDTH, SPEK_HEIGHT, 2);
+    Machine M;
+
+    initSpek(&M, M_ZX48);
 
     while (gRunning)
     {
+        ZXInput in;
+        ZXOutput out;
+
         win32ProcessPendingMessages();
-        z80Update();
-        eventUpate();
+
+        if (!spek(&in, &out)) gRunning = NO;
     }
 
     K_FREE(image, imageSize);
