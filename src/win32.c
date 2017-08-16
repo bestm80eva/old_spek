@@ -5,6 +5,7 @@
 // CONSTANTS
 #define SPEK_WIDTH      (48*2 + 256)
 #define SPEK_HEIGHT     (56*2 + 192)
+#define SPEK_SCALE      3
 
 //----------------------------------------------------------------------------------------------------------------------
 // INDEX
@@ -74,6 +75,65 @@ typedef char    bool;
 //----------------------------------------------------------------------------------------------------------------------
 
 bool gRunning = YES;
+
+//----------------------------------------------------------------------------------------------------------------------
+// File loading
+//----------------------------------------------------------------------------------------------------------------------
+
+typedef struct
+{
+    u8*     bytes;
+    i64     size;
+    HANDLE  file;
+    HANDLE  fileMap;
+}
+Blob;
+
+void blobUnload(Blob b)
+{
+    if (b.bytes)        UnmapViewOfFile(b.bytes);
+    if (b.fileMap)      CloseHandle(b.fileMap);
+    if (b.file)         CloseHandle(b.file);
+}
+
+Blob blobLoad(const char* fileName)
+{
+    Blob b = { 0 };
+    b.file = CreateFileA(fileName, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    if (b.file)
+    {
+        DWORD sizeH, sizeL;
+        sizeL = GetFileSize(b.file, &sizeH);
+        b.fileMap = CreateFileMappingA(b.file, 0, PAGE_READONLY, sizeH, sizeL, 0);
+        if (b.fileMap)
+        {
+            b.bytes = MapViewOfFile(b.fileMap, FILE_MAP_READ, 0, 0, 0);
+            b.size = ((i64)sizeH << 32) | sizeL;
+        }
+        else
+        {
+            blobUnload(b);
+        }
+    }
+
+    return b;
+}
+
+void* loader(const char* fileName, u8** buffer, i64* len)
+{
+    Blob* b = K_ALLOC(sizeof(Blob));
+    *b = blobLoad(fileName);
+    *buffer = b->bytes;
+    *len = b->size;
+    return b;
+}
+
+void unloader(void* handle)
+{
+    Blob* b = (Blob *)handle;
+    blobUnload(*b);
+    K_FREE(b, sizeof(Blob));
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 // Rendering
@@ -352,10 +412,11 @@ int kmain(int argc, char** argv)
 
     memoryClear(image, imageSize);
 
-    Window wnd = windowMake("SPEK (V0.1)", image, SPEK_WIDTH, SPEK_HEIGHT, 2);
+    Window wnd = windowMake("SPEK (V0.1)", image, SPEK_WIDTH, SPEK_HEIGHT, SPEK_SCALE);
     Machine M;
+    Platform P = { loader, unloader };
 
-    initSpek(&M, M_ZX48);
+    initSpek(&M, M_ZX48, &P);
 
     while (gRunning)
     {

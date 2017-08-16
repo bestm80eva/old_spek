@@ -170,12 +170,24 @@ typedef enum
 }
 Model;
 
+typedef void* (*DataLoadFunc)(const char* fileName, u8** bytes, i64* len);
+typedef void(*DataUnloadFunc)(void* data);
+
 typedef struct
 {
-    Model           model;
-    u32             tStates;
-    u8*             memory;
-    u8              border;
+    DataLoadFunc    dataLoad;
+    DataUnloadFunc  dataUnload;
+}
+Platform;
+
+typedef struct
+{
+    Platform    platform;
+    Model       model;
+    u32         tStates;
+    u8*         memory;
+    u8*         memoryEnd;
+    u8          border;
 }
 Machine;
 
@@ -226,6 +238,27 @@ void memoryLoad(Machine* M, const u8* data, i64 len, u16 address)
     memoryCopy(data, &M->memory[address], len);
 }
 
+//----------------------------------------------------------------------------------------------------------------{DATA}
+//----------------------------------------------------------------------------------------------------------------------
+// D A T A   L O A D I N G
+//----------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------
+
+void dataLoad(Platform* P, Machine* M, u16 address, const char* fileName)
+{
+    u8* buffer;
+    i64 len;
+    void* h = P->dataLoad(fileName, &buffer, &len);
+    if (M->memory + address + len <= M->memoryEnd)
+    {
+        memoryLoad(M, buffer, len, address);
+    }
+    else
+    {
+        // #todo: Add error message
+    }
+}
+
 //---------------------------------------------------------------------------------------------------------------{VIDEO}
 //----------------------------------------------------------------------------------------------------------------------
 // V I D E O   H A R D W A R E
@@ -253,6 +286,20 @@ void videoRender(Machine* M, ZXOutput* out)
         }
         else
         {
+            // Video data.
+            //  Pixels address is 010S SRRR CCCX XXXX
+            //  Attrs address is 0101 10YY YYYX XXXX
+            //  S = Section (0-2)
+            //  C = Cell row within section (0-7)
+            //  R = Pixel row within cell (0-7)
+            //  X = X coord (0-31)
+            //  Y = Y coord (0-23)
+            //
+            //  ROW = SSCC CRRR
+            //      = YYYY Y000
+            u16 p = 0x4000 + ((r & 0x0c0) << 5) + ((r & 0x7) << 8) + ((r & 0x38) << 2);
+            u16 a = 0x5800 + ((r & 0xf8) << 2);
+
             for (int c = -48; c < (256 + 48); ++c)
             {
                 if (c < 0 || c >= 256)
@@ -261,22 +308,8 @@ void videoRender(Machine* M, ZXOutput* out)
                 }
                 else
                 {
-                    // Video data.
-                    //  Pixels address is 010S SRRR CCCX XXXX
-                    //  Attrs address is 0101 10YY YYYX XXXX
-                    //  S = Section (0-2)
-                    //  C = Cell row within section (0-7)
-                    //  R = Pixel row within cell (0-7)
-                    //  X = X coord (0-31)
-                    //  Y = Y coord (0-23)
-                    //
-                    //  ROW = SSCC CRRR
-                    //      = YYYY Y000
-                    u16 p = 0x4000 + ((r & 0x0c0) << 5) + ((r & 0x7) << 8) + ((r & 0x38) << 2);
-                    u16 a = 0x5800 + ((r & 0xf8) << 2);
-
-                    u8 data = memoryGet8(M, p);
-                    u8 attr = memoryGet8(M, a);
+                    u8 data = memoryGet8(M, p++);
+                    u8 attr = memoryGet8(M, a++);
                     u32 ink = colours[(attr & 7) + ((attr & 0x40) >> 3)];
                     u32 paper = colours[(attr & 0x7f) >> 3];
 
@@ -323,7 +356,7 @@ int spek(Machine* M, ZXInput* in, ZXOutput* out)
     return YES;
 }
 
-void initSpek(Machine* M, Model model)
+void initSpek(Machine* M, Model model, Platform* P)
 {
     switch (model)
     {
@@ -340,6 +373,11 @@ void initSpek(Machine* M, Model model)
     M->tStates = 0;
     M->border = 7;
     M->model = model;
+
+    M->platform = *P;
+
+    dataLoad(P, M, 0, "48.rom");
+    dataLoad(P, M, 0x4000, "Wizball.scr");
 }
 
 //----------------------------------------------------------------------------------------------------------------------
