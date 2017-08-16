@@ -41,6 +41,7 @@ solution "spek"
 		objdir "../_obj/%{cfg.platform}/%{cfg.buildcfg}/%{prj.name}"
 		kind "WindowedApp"
 		files {
+            "../src/**.h",
 			"../src/**.c",
 		}
 		includedirs {

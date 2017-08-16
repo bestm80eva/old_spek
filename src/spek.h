@@ -170,11 +170,6 @@ typedef enum
 }
 Model;
 
-typedef struct Platform
-{
-
-};
-
 typedef struct
 {
     Model           model;
@@ -204,27 +199,31 @@ ZXOutput;
 
 u8 memoryGet8(Machine* M, u16 address)
 {
-
+    return M->memory[address];
 }
 
 u16 memoryGet16(Machine* M, u16 address)
 {
-
+    return ((u16)(M->memory[address]) << 8) + M->memory[(address + 1)];
 }
 
 void memorySet8(Machine* M, u16 address, u8 data)
 {
-
+    if (address >= 0x4000)
+    {
+        M->memory[address] = data;
+    }
 }
 
 void memorySet16(Machine* M, u16 address, u16 data)
 {
-
+    memorySet8(M, address, data & 0xff);
+    memorySet8(M, address + 1, data >> 8);
 }
 
-void memorySet(Machine* M, const u8* data, i64 len)
+void memoryLoad(Machine* M, const u8* data, i64 len, u16 address)
 {
-
+    memoryCopy(data, &M->memory[address], len);
 }
 
 //---------------------------------------------------------------------------------------------------------------{VIDEO}
@@ -233,6 +232,66 @@ void memorySet(Machine* M, const u8* data, i64 len)
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 
+void videoRender(Machine* M, ZXOutput* out)
+{
+    static const u32 colours[16] =
+    {
+        0x000000, 0x0000d7, 0xd70000, 0xd700d7, 0x00d700, 0x00d7d7, 0xd7d700, 0xd7d7d7,
+        0x000000, 0x0000ff, 0xff0000, 0xff00ff, 0x00ff00, 0x00ffff, 0xffff00, 0xffffff,
+    };
+
+    u32* img = out->screen;
+
+    for (int r = -56; r < (192 + 56); ++r)
+    {
+        if (r < 0 || r >= 192)
+        {
+            for (int c = -48; c < (256 + 48); ++c)
+            {
+                *img++ = colours[M->border];
+            }
+        }
+        else
+        {
+            for (int c = -48; c < (256 + 48); ++c)
+            {
+                if (c < 0 || c >= 256)
+                {
+                    *img++ = colours[M->border];
+                }
+                else
+                {
+                    // Video data.
+                    //  Pixels address is 010S SRRR CCCX XXXX
+                    //  Attrs address is 0101 10YY YYYX XXXX
+                    //  S = Section (0-2)
+                    //  C = Cell row within section (0-7)
+                    //  R = Pixel row within cell (0-7)
+                    //  X = X coord (0-31)
+                    //  Y = Y coord (0-23)
+                    //
+                    //  ROW = SSCC CRRR
+                    //      = YYYY Y000
+                    u16 p = 0x4000 + ((r & 0x0c0) << 5) + ((r & 0x7) << 8) + ((r & 0x38) << 2);
+                    u16 a = 0x5800 + ((r & 0xf8) << 2);
+
+                    u8 data = memoryGet8(M, p);
+                    u8 attr = memoryGet8(M, a);
+                    u32 ink = colours[(attr & 7) + ((attr & 0x40) >> 3)];
+                    u32 paper = colours[(attr & 0x7f) >> 3];
+
+                    for (int i = 7; i >= 0; --i)
+                    {
+                        img[i] = (data & 1) ? ink : paper;
+                        data >>= 1;
+                    }
+                    img += 8;
+                    c += 7;  // for loop with increment it once more
+                }
+            }
+        }
+    }
+}
 
 
 //---------------------------------------------------------------------------------------------------------------{EVENT}
@@ -260,7 +319,8 @@ int eventUpdate(Machine* M)
 
 int spek(Machine* M, ZXInput* in, ZXOutput* out)
 {
-    return 0;
+    videoRender(M, out);
+    return YES;
 }
 
 void initSpek(Machine* M, Model model)
@@ -278,6 +338,8 @@ void initSpek(Machine* M, Model model)
     }
 
     M->tStates = 0;
+    M->border = 7;
+    M->model = model;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

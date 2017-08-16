@@ -30,6 +30,7 @@
 #include <Windows.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 //----------------------------------------------------------------------------------------------------------------------
 // Required headers
@@ -363,7 +364,10 @@ int kmain(int argc, char** argv)
 
         win32ProcessPendingMessages();
 
-        if (!spek(&in, &out)) gRunning = NO;
+        out.screen = image;
+        if (!spek(&M, &in, &out)) gRunning = NO;
+
+        windowRedraw(wnd);
     }
 
     K_FREE(image, imageSize);
