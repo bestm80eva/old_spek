@@ -534,7 +534,7 @@ u8 kOverflowSub[] = { 0, FLAG_V, 0, 0, 0, 0, FLAG_V, 0 };
 { \
     u16 t = A + (value); \
     u8 x = ((A & 0x88) >> 3) | (((value) & 0x88) >> 2) | ((t & 0x88) >> 1); \
-    A = t; \
+    A = (u8)t; \
     F = (t & 0x100 ? FLAG_C : 0) | \
         kHalfCarryAdd[x & 0x07] | kOverflowAdd[x >> 4] | \
         gFlagsSZ53[A]; \
@@ -759,10 +759,10 @@ break;
 #define SUB(value) \
 { \
     u16 t = A - (value); \
-    u8 x = ((A & 0x88) >> 3) | (((value) & 0x88) >> 2) | ((subtemp & 0x88) >> 1);  \
-    A = t; \
+    u8 x = ((A & 0x88) >> 3) | (((value) & 0x88) >> 2) | ((t & 0x88) >> 1);  \
+    A = (u8)t; \
     F = (t & 0x100 ? FLAG_C : 0) | FLAG_N | \
-        kHalfCarrySub[X & 0x07] | kOverflowSub[X >> 4] | \
+        kHalfCarrySub[x & 0x07] | kOverflowSub[x >> 4] | \
         gFlagsSZ53[A]; \
 }
 
@@ -948,19 +948,43 @@ void z80Update(Machine* M)
                 ++PC;
             }
             break;
-        case 0x21:  //
+        case 0x21:  //  LD HL,nnnn
+            HL = memoryGet16(M, PC);
+            PC += 2;
             break;
-        case 0x22:  //
+        case 0x22:  //  LD (nnnn),HL
+            LD16_NNRR(HL);
             break;
-        case 0x23:  //
+        case 0x23:  //  INC HL
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            ++HL;
             break;
-        case 0x24:  //
+        case 0x24:  //  INC H
+            INC(H);
             break;
-        case 0x25:  //
+        case 0x25:  //  DEC H
+            DEC(H)
             break;
-        case 0x26:  //
+        case 0x26:  //  LD H,nn
+            H = memoryGet8(M, PC++);
             break;
-        case 0x27:  //
+        case 0x27:  //  DAA
+            {
+                u8 add = 0;
+                u8 carry = (F & FLAG_C);
+                if ((F & FLAG_H) || ((A & 0x0f) > 9)) add = 6;
+                if (carry || (A > 0x99)) add |= 0x60;
+                if (A > 0x99) carry = FLAG_C;
+                if (F & FLAG_N) {
+                    SUB(add);
+                }
+                else
+                {
+                    ADD(add);
+                }
+                F = (F & ~(FLAG_C | FLAG_P)) | carry | gParity[A];
+            }
             break;
         case 0x28:  //
             break;
