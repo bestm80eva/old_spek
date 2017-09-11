@@ -986,21 +986,48 @@ void z80Update(Machine* M)
                 F = (F & ~(FLAG_C | FLAG_P)) | carry | gParity[A];
             }
             break;
-        case 0x28:  //
+        case 0x28:  //  JR Z,offset
+            if (F & FLAG_Z)
+            {
+                JR();
+            }
+            else
+            {
+                CONTEND_READ(PC, 3);
+                ++PC;
+            }
             break;
-        case 0x29:  //
+        case 0x29:  //  ADD HL,HL
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            ADD16(HL, HL);
             break;
-        case 0x2a:  //
+        case 0x2a:  //  LD HL,(nnnn)
+            LD16_RRNN(HL)
             break;
-        case 0x2b:  //
+        case 0x2b:  //  DEC HL
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            --HL;
             break;
-        case 0x2c:  //
+        case 0x2c:  //  INC L
+            INC(L);
             break;
-        case 0x2d:  //
+        case 0x2d:  //  DEC L
+            DEC(L);
             break;
-        case 0x2e:  //
+        case 0x2e:  //  LD L,nn
+            L = memoryGet8(M, PC++);
             break;
-        case 0x2f:  //
+        case 0x2f:  //  CPL
+            A ^= 0xff;
+            F = (F & (FLAG_C | FLAG_P | FLAG_Z | FLAG_S)) |
+                (A & (FLAG_3 | FLAG_5)) | (FLAG_N | FLAG_H);
             break;
         case 0x30:  //
             break;
