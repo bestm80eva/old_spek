@@ -1029,37 +1029,102 @@ void z80Update(Machine* M)
             F = (F & (FLAG_C | FLAG_P | FLAG_Z | FLAG_S)) |
                 (A & (FLAG_3 | FLAG_5)) | (FLAG_N | FLAG_H);
             break;
-        case 0x30:  //
+        case 0x30:  //  JR NC,offset
+            if (!(F & FLAG_C))
+            {
+                JR();
+            }
+            else
+            {
+                CONTEND_READ(PC, 3);
+                ++PC;
+            }
             break;
-        case 0x31:  //
+        case 0x31:  // LD SP,nnnn
+            SP = memoryGet16(M, PC);
+            PC += 2;
             break;
-        case 0x32:  //
+        case 0x32:  //  LD (nnnn),A
+            {
+                u16 t = memoryGet16(M, PC);
+                PC += 2;
+                M->z80.p.l = (u8)t + 1;
+                M->z80.p.h = A;
+                memorySet8(M, t, A);
+            }
             break;
-        case 0x33:  //
+        case 0x33:  //  INC SP
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            ++SP;
             break;
-        case 0x34:  //
+        case 0x34:  //  INC (HL)
+            {
+                u8 t = memoryGet8(M, HL);
+                CONTEND_READ_NO_MREQ(HL, 1);
+                INC(t);
+                memorySet8(M, HL, t);
+            }
             break;
-        case 0x35:  //
+        case 0x35:  //  DEC (HL)
+            {
+                u8 t = memoryGet8(M, HL);
+                CONTEND_READ_NO_MREQ(HL, 1);
+                DEC(t);
+                memorySet8(M, HL, t);
+            }
             break;
-        case 0x36:  //
+        case 0x36:  //  LD (HL),nn
+            memorySet8(M, HL, memoryGet8(M, PC++));
             break;
-        case 0x37:  //
+        case 0x37:  //  SCF
+            F = (F & (FLAG_P | FLAG_Z | FLAG_S)) |
+                (A & (FLAG_3 | FLAG_5)) |
+                FLAG_C;
             break;
-        case 0x38:  //
+        case 0x38:  //  JR C,offset
+            if (F & FLAG_C)
+            {
+                JR();
+            }
+            else
+            {
+                CONTEND_READ(PC, 3);
+                ++PC;
+            }
             break;
-        case 0x39:  //
+        case 0x39:  //  ADD HL,SP
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            ADD16(HL, SP);
             break;
-        case 0x3a:  //
+        case 0x3a:  //  LD A,(nnnn)
+            M->z80.p.w = memoryGet16(M, PC);
+            PC += 2;
+            A = memoryGet8(M, M->z80.p.w++);
             break;
-        case 0x3b:  //
+        case 0x3b:  //  DEC SP
+            CONTEND_READ_NO_MREQ(IR, 1);
+            CONTEND_READ_NO_MREQ(IR, 1);
+            --SP;
             break;
-        case 0x3c:  //
+        case 0x3c:  //  INC A
+            INC(A);
             break;
-        case 0x3d:  //
+        case 0x3d:  //  DEC A
+            DEC(A);
             break;
-        case 0x3e:  //
+        case 0x3e:  //  LD A,nn
+            A = memoryGet8(M, PC++);
             break;
-        case 0x3f:  //
+        case 0x3f:  //  CCF
+            F = (F & (FLAG_P | FLAG_Z | FLAG_S)) |
+                ((F & FLAG_C) ? FLAG_H : FLAG_C) | (A & (FLAG_3 | FLAG_5));
             break;
         case 0x40:  //
             break;
