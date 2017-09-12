@@ -530,7 +530,7 @@ u8 kOverflowSub[] = { 0, FLAG_V, 0, 0, 0, 0, FLAG_V, 0 };
 { \
     u16 t = A + (value) + (F & FLAG_C); \
     u8 x = ((A & 0x88) >> 3) | (((value) & 0x88) >> 2) | ((t & 0x88) >> 1); \
-    A = t; \
+    A = (u8)t; \
     F = (t & 0x100 ? FLAG_C : 0) | \
         kHalfCarryAdd[x & 0x07] | kOverflowAdd[x >> 4] | \
         gFlagsSZ53[A]; \
@@ -596,7 +596,7 @@ u8 kOverflowSub[] = { 0, FLAG_V, 0, 0, 0, 0, FLAG_V, 0 };
 #define CP(value) \
 { \
     u16 t = A - (value); \
-    u8 x = ((A & 0x88) >> 3) | (((value & 0x88) >> 2) | ((t & 0x88) >> 1); \
+    u8 x = ((A & 0x88) >> 3) | (((value) & 0x88) >> 2) | ((t & 0x88) >> 1); \
     F = (t & 0x100 ? FLAG_C : (t ? 0 : FLAG_Z)) | FLAG_N | \
         kHalfCarrySub[x & 7] | \
         kOverflowSub[x >> 4] | \
@@ -728,7 +728,7 @@ break;
 { \
     u16 t = A - (value) - (F & FLAG_C); \
     u8 x = ((A & 0x88) >> 3) | (((value) & 0x88) >> 2) | ((t & 0x88) >> 1);  \
-    A = t; \
+    A = (u8)t; \
     F = (t & 0x100 ? FLAG_C : 0) | FLAG_N | \
         kHalfCarrySub[x & 0x07] | kOverflowSub[x >> 4] | \
         gFlagsSZ53[A]; \
@@ -1132,31 +1132,39 @@ void z80Update(Machine* M)
 
         case 2:
             {
-                //RWRef r = z80GetR(M, z);
+                RWRef r = z80GetR(M, z);
                 switch (y)
                 {
                 case 0: // ADD A,R
+                    ADD(*r.r);
                     break;
 
                 case 1: // ADC A,R
+                    ADC(*r.r);
                     break;
 
                 case 2: // SUB R
+                    SUB(*r.r);
                     break;
 
                 case 3: // SBC A,R
+                    SBC(*r.r);
                     break;
 
                 case 4: // AND R
+                    AND(*r.r);
                     break;
 
                 case 5: // XOR R
+                    XOR(*r.r);
                     break;
 
                 case 6: // OR R
+                    OR(*r.r);
                     break;
 
                 case 7: // CP R
+                    CP(*r.r);
                     break;
                 } // switch(y), z = 2, x = 2
             }
