@@ -1312,37 +1312,59 @@ void z80Update(Machine* M)
             break;
         case 0x7f:  //  LD A,A
             break;
-        case 0x80:  //
+        case 0x80:  //  ADD A,B
+            ADD(B);
             break;
-        case 0x81:  //
+        case 0x81:  //  ADD A,C
+            ADD(C);
             break;
-        case 0x82:  //
+        case 0x82:  //  ADD A,D
+            ADD(D);
             break;
-        case 0x83:  //
+        case 0x83:  //  ADD A,E
+            ADD(E);
             break;
-        case 0x84:  //
+        case 0x84:  //  ADD A,H
+            ADD(H);
             break;
-        case 0x85:  //
+        case 0x85:  //  ADD A,L
+            ADD(L);
             break;
-        case 0x86:  //
+        case 0x86:  //  ADD A,(HL)
+            {
+                u8 t = memoryGet8(M, HL);
+                ADD(t);
+            }
             break;
-        case 0x87:  //
+        case 0x87:  //  ADD A,A
+            ADD(A);
             break;
-        case 0x88:  //
+        case 0x88:  //  ADC A,B
+            ADC(B);
             break;
-        case 0x89:  //
+        case 0x89:  //  ADC A,C
+            ADC(C);
             break;
-        case 0x8a:  //
+        case 0x8a:  //  ADC A,D
+            ADC(D);
             break;
-        case 0x8b:  //
+        case 0x8b:  //  ADC A,E
+            ADC(E);
             break;
-        case 0x8c:  //
+        case 0x8c:  //  ADC A,H
+            ADC(H);
             break;
-        case 0x8d:  //
+        case 0x8d:  //  ADC A,L
+            ADC(L);
             break;
-        case 0x8e:  //
+        case 0x8e:  //  ADC A,(HL)
+            {
+                u8 t = memoryGet8(M, HL);
+                ADC(t);
+            }
             break;
-        case 0x8f:  //
+        case 0x8f:  //  ADC A,A
+            ADC(A);
             break;
         case 0x90:  //
             break;
