@@ -1126,133 +1126,191 @@ void z80Update(Machine* M)
             F = (F & (FLAG_P | FLAG_Z | FLAG_S)) |
                 ((F & FLAG_C) ? FLAG_H : FLAG_C) | (A & (FLAG_3 | FLAG_5));
             break;
-        case 0x40:  //
+        case 0x40:  //  LD B,B
             break;
-        case 0x41:  //
+        case 0x41:  //  LD B,C
+            B = C;
             break;
-        case 0x42:  //
+        case 0x42:  //  LD B,D
+            B = D;
             break;
-        case 0x43:  //
+        case 0x43:  //  LD B,E
+            B = E;
             break;
-        case 0x44:  //
+        case 0x44:  //  LD B,H
+            B = H;
             break;
-        case 0x45:  //
+        case 0x45:  //  LD B,L
+            B = L;
             break;
-        case 0x46:  //
+        case 0x46:  //  LD B,(HL)
+            B = memoryGet8(M, HL);
             break;
-        case 0x47:  //
+        case 0x47:  //  LD B,A
+            B = A;
             break;
-        case 0x48:  //
+        case 0x48:  //  LD C,B
+            C = B;
             break;
-        case 0x49:  //
+        case 0x49:  //  LD C,C
             break;
-        case 0x4a:  //
+        case 0x4a:  //  LD C,D
+            C = D;
             break;
-        case 0x4b:  //
+        case 0x4b:  //  LD C,E
+            C = E;
             break;
-        case 0x4c:  //
+        case 0x4c:  //  LD C,H
+            C = H;
             break;
-        case 0x4d:  //
+        case 0x4d:  //  LD C,L
+            C = L;
             break;
-        case 0x4e:  //
+        case 0x4e:  //  LD C,(HL)
+            C = memoryGet8(M, HL);
             break;
-        case 0x4f:  //
+        case 0x4f:  //  LD C,A
+            C = A;
             break;
-        case 0x50:  //
+        case 0x50:  //  LD D,B
+            D = B;
             break;
-        case 0x51:  //
+        case 0x51:  //  LD D,C
+            D = C;
             break;
-        case 0x52:  //
+        case 0x52:  //  LD D,D
             break;
-        case 0x53:  //
+        case 0x53:  //  LD D,E
+            D = E;
             break;
-        case 0x54:  //
+        case 0x54:  //  LD D,H
+            D = H;
             break;
-        case 0x55:  //
+        case 0x55:  //  LD D,L
+            D = L;
             break;
-        case 0x56:  //
+        case 0x56:  //  LD D,(HL)
+            D = memoryGet8(M, HL);
             break;
-        case 0x57:  //
+        case 0x57:  //  LD D,A
+            D = A;
             break;
-        case 0x58:  //
+        case 0x58:  //  LD E,B
+            E = B;
             break;
-        case 0x59:  //
+        case 0x59:  //  LD E,C
+            E = C;
             break;
-        case 0x5a:  //
+        case 0x5a:  //  LD E,D
+            E = D:
             break;
-        case 0x5b:  //
+        case 0x5b:  //  LD E,E
             break;
-        case 0x5c:  //
+        case 0x5c:  //  LD E,H
+            E = H;
             break;
-        case 0x5d:  //
+        case 0x5d:  //  LD E,L
+            E = L;
             break;
-        case 0x5e:  //
+        case 0x5e:  //  LD E,(HL)
+            E = memoryGet8(M, HL);
             break;
-        case 0x5f:  //
+        case 0x5f:  //  LD E,A
+            E = A;
             break;
-        case 0x60:  //
+        case 0x60:  //  LD H,B
+            H = B;
             break;
-        case 0x61:  //
+        case 0x61:  //  LD H,C
+            H = C;
             break;
-        case 0x62:  //
+        case 0x62:  //  LD H,D
+            H = D;
             break;
-        case 0x63:  //
+        case 0x63:  //  LD H,E
+            H = E;
             break;
-        case 0x64:  //
+        case 0x64:  //  LD H,H
             break;
-        case 0x65:  //
+        case 0x65:  //  LD H,L
+            H = L;
             break;
-        case 0x66:  //
+        case 0x66:  //  LD H,(HL)
+            H = memoryGet8(M, HL);
             break;
-        case 0x67:  //
+        case 0x67:  //  LD H,A
+            H = A;
             break;
-        case 0x68:  //
+        case 0x68:  //  LD L,B
+            L = B;
             break;
-        case 0x69:  //
+        case 0x69:  //  LD L,C
+            L = C;
             break;
-        case 0x6a:  //
+        case 0x6a:  //  LD L,D
+            L = D;
             break;
-        case 0x6b:  //
+        case 0x6b:  //  LD L,E
+            L = E;
             break;
-        case 0x6c:  //
+        case 0x6c:  //  LD L,H
+            L = H;
             break;
-        case 0x6d:  //
+        case 0x6d:  //  LD L,L
             break;
-        case 0x6e:  //
+        case 0x6e:  //  LD L,(HL)
+            L = memoryGet8(M, HL);
             break;
-        case 0x6f:  //
+        case 0x6f:  //  LD L,A
+            L = A;
             break;
-        case 0x70:  //
+        case 0x70:  //  LD (HL),B
+            memorySet8(M, HL, B);
             break;
-        case 0x71:  //
+        case 0x71:  //  LD (HL),C
+            memorySet8(M, HL, C);
             break;
-        case 0x72:  //
+        case 0x72:  //  LD (HL),D
+            memorySet8(M, HL, D);
             break;
-        case 0x73:  //
+        case 0x73:  //  LD (HL),E
+            memorySet8(M, HL, E);
             break;
-        case 0x74:  //
+        case 0x74:  //  LD (HL),H
+            memorySet8(M, HL, H);
             break;
-        case 0x75:  //
+        case 0x75:  //  LD (HL),L
+            memorySet8(M, HL, L);
             break;
-        case 0x76:  //
+        case 0x76:  // HALT
+            M->z80.halted = 1;
+            --PC;
             break;
-        case 0x77:  //
+        case 0x77:  //  LD (HL),A
+            memorySet8(M, HL, A);
             break;
-        case 0x78:  //
+        case 0x78:  //  LD A,B
+            A = B;
             break;
-        case 0x79:  //
+        case 0x79:  //  LD A,C
+            A = C;
             break;
-        case 0x7a:  //
+        case 0x7a:  //  LD A,D
+            A = D;
             break;
-        case 0x7b:  //
+        case 0x7b:  //  LD A,E
+            A = E;
             break;
-        case 0x7c:  //
+        case 0x7c:  //  LD A,H
+            A = H;
             break;
-        case 0x7d:  //
+        case 0x7d:  //  LD A,L
+            A = L;
             break;
-        case 0x7e:  //
+        case 0x7e:  //  LD A,(HL)
+            A = memoryGet8(M, HL);
             break;
-        case 0x7f:  //
+        case 0x7f:  //  LD A,A
             break;
         case 0x80:  //
             break;
